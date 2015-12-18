@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Drawing;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Web.Helpers;
 using System.Windows.Forms;
 using System.Net;
+using Microsoft.CSharp.RuntimeBinder;
 
 namespace WetterkontorRegenradar
 {
@@ -16,6 +19,7 @@ namespace WetterkontorRegenradar
 		DateTime _dateTimeVorhersage;
 		Image _imageAktuell;
 		Image _imageVorhersage;
+	    private MenuItem[] _menu;
 
 	    public NotificationIcon()
 		{
@@ -28,18 +32,39 @@ namespace WetterkontorRegenradar
 			_notifyIcon.ContextMenu = notificationMenu;
 			_notifyIcon.Text = "Wetterkontor Regenradar";
 		}
-		
+
+        static object GetDynamicMember(object obj, string memberName)
+        {
+            var binder = Binder.GetMember(CSharpBinderFlags.None, memberName, obj.GetType(),
+                new[] { CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null) });
+            var callsite = CallSite<Func<CallSite, object, object>>.Create(binder);
+            return callsite.Target(callsite, obj);
+        }
+
 		private MenuItem[] InitializeMenu()
 		{
-			var menu = new MenuItem[] {
+		    var vvv = GetTemperature();
+
+		    _menu = new MenuItem[] {
+                new MenuItem(vvv + " °C", MenuRadarClick),
 				new MenuItem("Aktuell", MenuRadarClick),
 				new MenuItem("Vorhersage", MenuRadarClick),
 				new MenuItem("Beenden", MenuExitClick)
 			};
-			return menu;
+			return _menu;
 		}
 
-		[STAThread]
+	    private string GetTemperature()
+	    {
+	        var ow = new OpenWeather();
+	        DynamicJsonObject x = ow.GetWeather();
+	        object v = GetDynamicMember(x, "main");
+	        double vv = Convert.ToDouble(GetDynamicMember(v, "temp")) - 273.15;
+	        var vvv = String.Format("{0}", vv);
+	        return vvv;
+	    }
+
+	    [STAThread]
 		public static void Main(string[] args)
 		{
 			Application.EnableVisualStyles();
@@ -58,8 +83,7 @@ namespace WetterkontorRegenradar
 				} 
 				else 
 				{
-					MessageBox.Show("Wat für messags");
-					// The application is already running
+                    MessageBox.Show("The application is already running");
 				}
 			}
 		}
@@ -111,6 +135,8 @@ namespace WetterkontorRegenradar
 			{
 				if (_imageAktuell == null || ((DateTime.Now - _dateTimeAktuell).TotalMinutes > 5))
 				{
+                    _menu[0].Text = GetTemperature() + " °C";
+
 					const string url = "http://img.wetterkontor.de/radar/radar_aktuell.gif";
 					_imageAktuell = GetImageFromUrl(url);
 					_imageAktuell.Tag = 0;
