@@ -67,7 +67,6 @@ namespace WetterkontorRegenradar
 		private MenuItem[] InitializeMenu()
 		{
 		    _menu = new MenuItem[] {
-                new MenuItem(GetTemperature(), MenuRadarClick),
 				new MenuItem("Aktuell", MenuRadarClick),
 				new MenuItem("Vorhersage", MenuRadarClick),
 				new MenuItem("Beenden", MenuExitClick)
@@ -81,7 +80,7 @@ namespace WetterkontorRegenradar
 	        DynamicJsonObject x = ow.GetWeather();
 	        object v = GetDynamicMember(x, "main");
 	        double vv = Convert.ToDouble(GetDynamicMember(v, "temp")) - 273.15;
-	        var vvv = String.Format("{0}", vv);
+	        var vvv = String.Format("{0:0.0}", vv);
             return vvv + " °C";
 	    }
 
@@ -110,10 +109,20 @@ namespace WetterkontorRegenradar
 		}
 
 	    private void MenuRadarClick(object sender, EventArgs e)
-		{
-	        var menuItem = sender as ButtonBase;
-	        if (menuItem == null) return;
-	        var menuText = menuItem.Text;
+	    {
+	        string menuText;
+	        var menuItem = sender as MenuItem;
+	        if (menuItem != null)
+	        {
+	            menuText = menuItem.Text;
+	        }
+	        else
+	        {
+	            var menuItem2 = sender as ButtonBase;
+	            if (menuItem2 == null)
+	                return;
+	            menuText = menuItem2.Text;
+	        }
 
 	        switch (menuText)
 	        {
@@ -145,6 +154,8 @@ namespace WetterkontorRegenradar
 		    _button.Click += MenuRadarClick;
 			_form.FormClosed += _form_FormClosed;
 			_form.Controls.Add(_button);
+            var resources = new System.ComponentModel.ComponentResourceManager(typeof(NotificationIcon));
+            _form.Icon = (Icon)resources.GetObject("rain");
 		}
 			
 		void DialogAnzeigen(int tag)
@@ -156,8 +167,6 @@ namespace WetterkontorRegenradar
 			{
 				if (_imageAktuell == null || ((DateTime.Now - _dateTimeAktuell).TotalMinutes > 5))
 				{
-                    _menu[0].Text = GetTemperature();
-
 					const string url = "http://img.wetterkontor.de/radar/radar_aktuell.gif";
 					_imageAktuell = GetImageFromUrl(url);
 					_imageAktuell.Tag = 0;
@@ -166,7 +175,7 @@ namespace WetterkontorRegenradar
 				}
 				_pictureBox.Image = _imageAktuell;
 				_form.Size = _imageAktuell.Size;
-				_form.Text = "Radar";
+				_form.Text = "Radar / " + "Aktuelle Temperatur: " + GetTemperature();
 				_button.Text = "Vorhersage";				
 			}
 			else
@@ -181,7 +190,7 @@ namespace WetterkontorRegenradar
 				}
 				_pictureBox.Image = _imageVorhersage;
 				_form.Size = _imageVorhersage.Size;
-				_form.Text = "Vorhersage";
+				_form.Text = "Vorhersage / " + "Aktuelle Temperatur: " + GetTemperature();
 				_button.Text = "Aktuell";
 			}
 
