@@ -24,14 +24,21 @@ namespace WetterkontorRegenradar
         {
             const string urlDresden = "http://api.openweathermap.org/data/2.5/weather?id=2935022&appid=2de143494c0b295cca9337e1e96b00e0";
 
-            var httpWebRequest = (HttpWebRequest)WebRequest.Create(urlDresden);
-            var httpWebReponse = (HttpWebResponse)httpWebRequest.GetResponse();
-            var stream = httpWebReponse.GetResponseStream();
-
-            if (stream != null)
+            try
             {
-                var sr = new StreamReader(stream);
-                return sr.ReadToEnd();
+                var httpWebRequest = (HttpWebRequest) WebRequest.Create(urlDresden);
+                var httpWebReponse = (HttpWebResponse) httpWebRequest.GetResponse();
+                var stream = httpWebReponse.GetResponseStream();
+
+                if (stream != null)
+                {
+                    var sr = new StreamReader(stream);
+                    return sr.ReadToEnd();
+                }
+            }
+            catch (WebException)
+            {
+                
             }
 
             return string.Empty;

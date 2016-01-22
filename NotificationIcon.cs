@@ -78,6 +78,10 @@ namespace WetterkontorRegenradar
 	    {
 	        var ow = new OpenWeather();
 	        DynamicJsonObject x = ow.GetWeather();
+	        
+            if (x == null)
+	            return " - ";
+
 	        object v = GetDynamicMember(x, "main");
 	        double vv = Convert.ToDouble(GetDynamicMember(v, "temp")) - 273.15;
 	        var vvv = String.Format("{0:0.0}", vv);
