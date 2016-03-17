@@ -22,8 +22,9 @@ namespace WetterkontorRegenradar
 
         public string JsonRequest()
         {
-            const string urlDresden = "http://api.openweathermap.org/data/2.5/weather?id=2935020&appid=44db6a862fba0b067b1930da0d769e98";
-            //const string urlDresden = "http://api.openweathermap.org/data/2.5/weather?id=2935022&appid=2de143494c0b295cca9337e1e96b00e0";
+            const string myApi = "6476e4aa720282dac00814a569b2019f";
+
+            const string urlDresden = "http://api.openweathermap.org/data/2.5/weather?id=2935020&appid=" + myApi;
 
             try
             {
