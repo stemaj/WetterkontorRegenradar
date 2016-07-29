@@ -77,13 +77,17 @@ namespace WetterkontorRegenradar
 	    private string GetTemperature()
 	    {
 	        var ow = new OpenWeather();
-	        DynamicJsonObject x = ow.GetWeather();
+	        var x = ow.GetWeather();
 	        
             if (x == null)
 	            return " - ";
 
-	        object v = GetDynamicMember(x, "main");
-	        double vv = Convert.ToDouble(GetDynamicMember(v, "temp")) - 273.15;
+	        var v = GetDynamicMember(x, "main");
+
+	        if (v == null)
+	            return Convert.ToInt32(GetDynamicMember(x, "cod")) == 404 ? "404 Error" : "unknown Error";
+
+	        var vv = Convert.ToDouble(GetDynamicMember(v, "temp")) - 273.15;
 	        var vvv = String.Format("{0:0.0}", vv);
             return vvv + " °C";
 	    }
@@ -173,13 +177,16 @@ namespace WetterkontorRegenradar
 				{
 					const string url = "http://img.wetterkontor.de/radar/radar_aktuell.gif";
 					_imageAktuell = GetImageFromUrl(url);
-					_imageAktuell.Tag = 0;
-					
-					_dateTimeAktuell = DateTime.Now;
+				    if (_imageAktuell != null) _imageAktuell.Tag = 0;
+
+				    _dateTimeAktuell = DateTime.Now;
 				}
-				_pictureBox.Image = _imageAktuell;
-				_form.Size = _imageAktuell.Size;
-				_form.Text = "Radar / " + "Aktuelle Temperatur: " + GetTemperature();
+			    if (_imageAktuell != null)
+			    {
+			        _pictureBox.Image = _imageAktuell;
+			        _form.Size = _imageAktuell.Size;
+			    }
+			    _form.Text = "Radar / " + "Aktuelle Temperatur: " + GetTemperature();
 				_button.Text = "Vorhersage";				
 			}
 			else
@@ -188,13 +195,16 @@ namespace WetterkontorRegenradar
 				{
 					const string url = "http://img.wetterkontor.de/radar/radar_vorhersage.gif";
 					_imageVorhersage = GetImageFromUrl(url);
-					_imageVorhersage.Tag = 1;
-					
-					_dateTimeVorhersage = DateTime.Now;
+				    if (_imageVorhersage != null) _imageVorhersage.Tag = 1;
+
+				    _dateTimeVorhersage = DateTime.Now;
 				}
-				_pictureBox.Image = _imageVorhersage;
-				_form.Size = _imageVorhersage.Size;
-				_form.Text = "Vorhersage / " + "Aktuelle Temperatur: " + GetTemperature();
+			    if (_imageVorhersage != null)
+			    {
+			        _pictureBox.Image = _imageVorhersage;
+			        _form.Size = _imageVorhersage.Size;
+			    }
+			    _form.Text = "Vorhersage / " + "Aktuelle Temperatur: " + GetTemperature();
 				_button.Text = "Aktuell";
 			}
 
@@ -215,10 +225,17 @@ namespace WetterkontorRegenradar
 
 		private static Image GetImageFromUrl(string url)
 		{
-			var httpWebRequest = (HttpWebRequest)WebRequest.Create(url);
-			var httpWebReponse = (HttpWebResponse)httpWebRequest.GetResponse();
-			var stream = httpWebReponse.GetResponseStream();
-	        return stream != null ? Image.FromStream(stream) : null;
+		    try
+		    {
+		        var httpWebRequest = (HttpWebRequest) WebRequest.Create(url);
+		        var httpWebReponse = (HttpWebResponse) httpWebRequest.GetResponse();
+		        var stream = httpWebReponse.GetResponseStream();
+		        return stream != null ? Image.FromStream(stream) : null;
+		    }
+		    catch (WebException)
+		    {
+		        return null;
+		    }
 		}
 	}
 }
