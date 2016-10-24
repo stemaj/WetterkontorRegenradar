@@ -31,11 +31,13 @@ namespace WetterkontorRegenradar
 			var resources = new System.ComponentModel.ComponentResourceManager(typeof(NotificationIcon));
 			_notifyIcon.Icon = (Icon)resources.GetObject("rain");
 			_notifyIcon.ContextMenu = notificationMenu;
-			_notifyIcon.Text = "Wetterkontor Regenradar";
 		}
 
 	    private void NotifyIconOnMouseMove(object sender, MouseEventArgs mouseEventArgs)
 	    {
+            if (string.IsNullOrEmpty(_notifyIcon.Text))
+                _notifyIcon.Text = GetTemperature();
+
 	        if (_timer == null)
 	        {
 	            _timer = new System.Windows.Forms.Timer();
@@ -48,7 +50,7 @@ namespace WetterkontorRegenradar
 	        _timer.Interval = 5000;
             _timer.Start();
 
-	        _notifyIcon.Text = GetTemperature();
+            _notifyIcon.Text = GetTemperature();
 	    }
 
 	    private void TimerOnTick(object sender, EventArgs eventArgs)
